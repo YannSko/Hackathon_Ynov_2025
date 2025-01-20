@@ -90,7 +90,17 @@ class HeatingFootprintModel:
         all_emissions_sorted = sorted(all_emissions, key=lambda x: x["adjusted_ecv"])
         alternatives = [item for item in all_emissions_sorted if item["adjusted_ecv"] < current_emissions["adjusted_ecv"]]
         return alternatives[:3]
+def get_heating_options():
+    """
+    Return the dictionary of heating options.
+    """
+    return HeatingFootprintModel.HEATING_OPTIONS
 
+def get_seasonal_options():
+    """
+    Return the dictionary of seasonal multipliers.
+    """
+    return HeatingFootprintModel.SEASONAL_MULTIPLIERS
 # Expose functions for external use
 def calculate_emissions(m2, heating_id, season):
     model = HeatingFootprintModel()
