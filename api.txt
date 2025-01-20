@@ -1,0 +1,7 @@
+Food Api:
+
+https://github.com/openfoodfacts/openfoodfacts-dart?tab=readme-ov-file
+
+
+API autres : 
+https://impactco2.fr/doc/api
