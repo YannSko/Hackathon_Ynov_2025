@@ -7,7 +7,7 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s]: %(m
 
 class HeatingFootprintModel:
     """
-    A model to handle CO2 emissions for heating systems.
+    A model to handle CO2 emissions for heating systems with seasonal adjustments and alternative suggestions.
     """
     HEATING_OPTIONS = {
         1: "Chauffage au gaz",
@@ -19,6 +19,12 @@ class HeatingFootprintModel:
         7: "Chauffage via un réseau de chaleur",
     }
 
+    SEASONAL_MULTIPLIERS = {
+        "winter": 1.0,  # Full usage
+        "summer": 0.1,  # Minimal usage
+        "year": 0.5,  # Average yearly usage
+    }
+
     def __init__(self):
         self.api_url = "https://impactco2.fr/api/v1/chauffage"
 
@@ -28,14 +34,15 @@ class HeatingFootprintModel:
         for key, value in self.HEATING_OPTIONS.items():
             print(f"{key}: {value}")
 
-    def get_heating_emissions(self, m2, heating_id, language="fr"):
+    def get_heating_emissions(self, m2, heating_id, season="year", language="fr"):
         """
-        Fetch CO2 emissions data for heating from the API.
+        Fetch CO2 emissions data for heating from the API and adjust for seasonality.
 
         :param m2: Surface area in square meters
         :param heating_id: Heating system ID
+        :param season: Season (e.g., 'winter', 'summer', or 'year')
         :param language: Language for response data
-        :return: List of heating emissions data
+        :return: Adjusted emissions data
         """
         params = {
             "m2": m2,
@@ -48,7 +55,11 @@ class HeatingFootprintModel:
             if response.status_code == 200:
                 data = response.json()
                 if "data" in data:
-                    return data["data"]
+                    emissions = data["data"]
+                    multiplier = self.SEASONAL_MULTIPLIERS.get(season, 1.0)
+                    for item in emissions:
+                        item["adjusted_ecv"] = item["ecv"] * multiplier
+                    return emissions
                 else:
                     logging.warning("No emissions data available for the heating query.")
             else:
@@ -57,17 +68,18 @@ class HeatingFootprintModel:
             logging.error(f"An error occurred while fetching heating data: {e}")
         return None
 
-    def suggest_alternative_heatings(self, m2, current_heating_id):
+    def suggest_alternative_heatings(self, m2, current_heating_id, season="year"):
         """
         Suggest alternative heating systems with lower CO2 emissions.
 
         :param m2: Surface area in square meters
         :param current_heating_id: Current heating system ID
+        :param season: Season (e.g., 'winter', 'summer', or 'year')
         :return: List of alternative heating options
         """
         # Fetch emissions data for all heating systems
         heating_ids = ",".join(map(str, self.HEATING_OPTIONS.keys()))
-        all_emissions = self.get_heating_emissions(m2, heating_ids)
+        all_emissions = self.get_heating_emissions(m2, heating_ids, season=season)
         if not all_emissions:
             logging.warning("Could not retrieve emissions data to suggest alternatives.")
             return None
@@ -84,15 +96,15 @@ class HeatingFootprintModel:
             return None
 
         # Display the current heating system emissions
-        print(f"\nCurrent Heating System: {current_heating_name}")
-        print(f"- Emissions: {current_emissions['ecv']} kg CO2e for {m2} m²")
+        print(f"\nCurrent Heating System: {current_heating_name} ({season})")
+        print(f"- Emissions: {current_emissions['adjusted_ecv']} kg CO2e for {m2} m² (adjusted for {season})")
 
         # Sort by CO2 emissions
-        all_emissions_sorted = sorted(all_emissions, key=lambda x: x["ecv"])
+        all_emissions_sorted = sorted(all_emissions, key=lambda x: x["adjusted_ecv"])
 
         # Find alternatives with lower emissions than the current heating system
         alternatives = [
-            item for item in all_emissions_sorted if item["ecv"] < current_emissions["ecv"]
+            item for item in all_emissions_sorted if item["adjusted_ecv"] < current_emissions["adjusted_ecv"]
         ]
         return alternatives[:3]  # Return top 3 alternatives
 
@@ -120,11 +132,16 @@ if __name__ == "__main__":
                     logging.error("Invalid heating ID. Please select from the list.")
                     continue
 
-                emissions_data = model.get_heating_emissions(m2, heating_id)
+                season = input("Enter the season (winter, summer, or year): ").strip().lower()
+                if season not in model.SEASONAL_MULTIPLIERS:
+                    logging.error("Invalid season. Please choose from 'winter', 'summer', or 'year'.")
+                    continue
+
+                emissions_data = model.get_heating_emissions(m2, heating_id, season=season)
                 if emissions_data:
-                    print(f"\nHeating emissions data for {m2} m² using {model.HEATING_OPTIONS[heating_id]}:")
+                    print(f"\nHeating emissions data for {m2} m² using {model.HEATING_OPTIONS[heating_id]} ({season}):")
                     for item in emissions_data:
-                        print(f"- {item['name']}: {item['ecv']} kg CO2e")
+                        print(f"- {item['name']}: {item['adjusted_ecv']} kg CO2e (adjusted for {season})")
             except ValueError:
                 logging.error("Invalid input for surface area or heating ID. Please enter valid numbers.")
         elif choice == "2":
@@ -137,11 +154,16 @@ if __name__ == "__main__":
                     logging.error("Invalid heating ID. Please select from the list.")
                     continue
 
-                alternatives = model.suggest_alternative_heatings(m2, heating_id)
+                season = input("Enter the season (winter, summer, or year): ").strip().lower()
+                if season not in model.SEASONAL_MULTIPLIERS:
+                    logging.error("Invalid season. Please choose from 'winter', 'summer', or 'year'.")
+                    continue
+
+                alternatives = model.suggest_alternative_heatings(m2, heating_id, season=season)
                 if alternatives:
                     print("\nSuggested alternative heating systems with lower CO2 emissions:")
                     for alt in alternatives:
-                        print(f"- {alt['name']}: {alt['ecv']} kg CO2e")
+                        print(f"- {alt['name']}: {alt['adjusted_ecv']} kg CO2e (adjusted for {season})")
             except ValueError:
                 logging.error("Invalid input for surface area or heating ID. Please enter valid numbers.")
         elif choice == "3":
