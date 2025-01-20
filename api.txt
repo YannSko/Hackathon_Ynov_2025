@@ -2,6 +2,11 @@ Food Api:
 
 https://github.com/openfoodfacts/openfoodfacts-dart?tab=readme-ov-file
 
+https://spoonacular.com/food-api/docs#Get-Recipe-Information
+
+csv:
+
+https://www.data.gouv.fr/fr/datasets/open-food-facts-produits-alimentaires-ingredients-nutrition-labels/
 
 API autres : 
 https://impactco2.fr/doc/api
