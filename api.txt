@@ -8,5 +8,7 @@ csv:
 
 https://www.data.gouv.fr/fr/datasets/open-food-facts-produits-alimentaires-ingredients-nutrition-labels/
 
+source data: https://data.ademe.fr/datasets/agribalyse-31-detail-par-etape
+
 API autres : 
 https://impactco2.fr/doc/api
