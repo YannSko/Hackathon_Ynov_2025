@@ -5,6 +5,8 @@ from scripts.api.trajet_api import (
     suggest_transport_alternatives,
     get_transport_options,
 )
+from scripts.index_calculations import EnvironmentalIndexCalculator
+
 # Food footprint model usage
 # Define datasets
 datasets = {
@@ -48,6 +50,7 @@ if alternatives:
     print("\nSuggested alternative heating systems with lower CO₂ emissions:")
     for alt in alternatives:
         print(f"- {alt['name']}: {alt['adjusted_ecv']} kg CO₂e (adjusted for {season})")
+
 # Query example
 distance = 50  # Distance in kilometers
 transport_id = 4  # Example: Voiture thermique
@@ -65,3 +68,30 @@ if transport_alternatives:
     print("\nSuggested alternative transport options with lower CO₂ emissions:")
     for alt in transport_alternatives:
         print(f"- {alt['name']}: {alt['value']} kg CO₂e")
+
+# === Environmental Indices ===
+# Initialize the Environmental Index Calculator
+calculator = EnvironmentalIndexCalculator(food_model, heating_model)
+
+# Calculate all indices and global rank
+results = calculator.calculate_indices(
+    product_name=product_name,
+    weight_kg=weight_kg,
+    m2=m2,
+    heating_id=heating_id,
+    season=season,
+    distance=distance,
+    transport_id=transport_id
+)
+
+# Display results
+print("\n=== Environmental Indices ===")
+for category, data in results.items():
+    if category == "Global Rank":
+        # Handle Global Rank as a single value
+        print(f"\n{category}: {data}")
+    else:
+        # Handle other categories as dictionaries
+        print(f"\n{category}:")
+        for key, value in data.items():
+            print(f"- {key}: {value}")
