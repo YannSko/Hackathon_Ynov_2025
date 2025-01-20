@@ -1,0 +1,28 @@
+services:
+  postgres:
+    image: postgres:latest
+    container_name: postgres_db
+    restart: always
+    environment:
+      POSTGRES_USER: your_username  # Remplacez par votre nom d'utilisateur
+      POSTGRES_PASSWORD: your_password  # Remplacez par votre mot de passe
+      POSTGRES_DB: ClashOfRse
+    ports:
+      - "5432:5432"  # Expose PostgreSQL sur le port 5432
+    volumes:
+      - postgres_data:/var/lib/postgresql/data  # Persistance des données
+
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: pgadmin
+    restart: always
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@example.com  # Adresse e-mail pour se connecter à PGAdmin
+      PGADMIN_DEFAULT_PASSWORD: admin  # Mot de passe pour PGAdmin
+    ports:
+      - "8080:80"  # Expose PGAdmin sur le port 8080
+    depends_on:
+      - postgres
+
+volumes:
+  postgres_data:

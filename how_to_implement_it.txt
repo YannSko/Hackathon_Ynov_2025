@@ -1,0 +1,109 @@
+Use Azure Data Factory + Azure Functions for calling your Python scripts.
+
+1. Prepare Your Python Script
+Make sure your Python script is ready and functional. In your case, the index_calculations.py script needs to:
+
+Accept inputs such as product name, weight, heating details, and distance.
+Return results as output (e.g., JSON or text).
+Handle exceptions and errors gracefully.
+Save the script in a location accessible for deployment, such as Azure Blob Storage.
+
+2. Set Up Azure Data Factory
+Create an ADF Instance:
+
+Log in to the Azure portal.
+Go to Azure Data Factory and click Create.
+Fill in the required fields (name, resource group, etc.) and create the instance.
+Access the Data Factory Interface:
+
+Open the ADF instance and go to the Author & Monitor interface.
+3. Upload Your Script to Azure
+Create a Blob Storage Container:
+
+Go to Azure Blob Storage in the Azure portal.
+Create a container (e.g., scripts) and upload your Python script (e.g., index_calculations.py).
+Note the Blob URL:
+
+Once uploaded, copy the URL of the Python script. It will be something like:
+arduino
+Copier
+Modifier
+https://<storage_account>.blob.core.windows.net/scripts/index_calculations.py
+4. Set Up an Azure Batch or Azure Function (Optional)
+Azure Data Factory does not directly execute Python scripts. You need to use one of the following services:
+
+Option A: Azure Batch
+Create an Azure Batch Pool:
+
+Go to Azure Batch Accounts in the Azure portal.
+Create a batch account, then create a pool with nodes that support Python.
+Run the Script in Batch:
+
+Configure a Batch task in ADF to execute your Python script on one of the nodes.
+Option B: Azure Functions
+Deploy Your Python Script to Azure Functions:
+
+Package the script in a zip file with a requirements.txt.
+Deploy the function using the Azure CLI or the portal.
+Get the Function URL:
+
+Once deployed, copy the Azure Function's HTTP trigger URL.
+5. Create a Pipeline in ADF
+Create a New Pipeline:
+
+In the Author tab, click New Pipeline.
+Add an HTTP Activity (For Azure Functions):
+
+Drag and drop the HTTP activity into the pipeline.
+Configure it to call your Azure Function:
+Method: POST
+URL: Paste the HTTP trigger URL from Azure Functions.
+Headers: Include any necessary headers (e.g., Content-Type: application/json).
+Body: Provide the inputs for your script (in JSON format):
+json
+Copier
+Modifier
+{
+  "product_name": "pomme de terre",
+  "weight_kg": 0.5,
+  "m2": 50,
+  "heating_id": 3,
+  "season": "winter",
+  "distance": 50,
+  "transport_id": 4
+}
+Add a Batch Activity (For Azure Batch):
+
+Drag and drop the Azure Batch activity into the pipeline.
+Configure it to run your Python script:
+Provide the Batch account details.
+Set up a task to execute the Python script using the command:
+javascript
+Copier
+Modifier
+python index_calculations.py <arguments>
+Set Up Pipeline Trigger:
+
+Add a trigger (manual, schedule-based, or event-based) to run the pipeline.
+6. Test the Pipeline
+Run the Pipeline:
+
+Use the Debug feature to test the pipeline.
+Monitor the execution logs in the Monitor tab.
+Validate the Results:
+
+Check the output of the HTTP activity or Azure Batch task.
+Ensure the script ran successfully and returned the expected indices and global rank.
+7. Optional Enhancements
+Store Outputs:
+Save the script output to a database or Azure Blob Storage using the Copy Activity.
+Dynamic Inputs:
+Use parameters in ADF to make the inputs dynamic (e.g., pass user data from a front-end).
+Example Workflow
+Trigger: Event-based trigger (e.g., when user data is submitted).
+HTTP Activity: Call the Azure Function running your Python script.
+Copy Activity: Save the calculated indices and global rank to a database or storage.
+Why Azure Functions Is Ideal for Your Use Case
+Lightweight Triggering: Your scripts run only when triggered by user input.
+Scalable: Functions scale automatically with load.
+Integration: Easily integrates with ADF, storage, and other Azure services.
