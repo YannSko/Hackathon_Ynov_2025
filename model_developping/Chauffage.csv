@@ -1,0 +1,9 @@
+chauffageid,nom,co2parm
+1,Chauffage au gaz,50.0
+2,Chauffage au fioul,60.0
+3,Chauffage électrique,30.0
+4,Pompe à chaleur,15.0
+5,Poêle à granulés,10.0
+6,Poêle à bois,20.0
+7,Réseau de chaleur,5.0
+8,Chauffage au charbon,80.0

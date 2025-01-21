@@ -1,0 +1,28 @@
+transportid,nom,co2parkm
+1,Avion,0.14157999999999998
+2,TGV,0.00293
+3,Intercités,0.00898
+4,Voiture thermique,0.21760000000000002
+5,Voiture électrique,0.10339999999999999
+6,Autocar thermique,0.029421306270000003
+7,Vélo,0.00017
+8,Vélo à assistance électrique,0.010950000000000001
+9,Bus thermique,0.11320000000000001
+10,Tramway,0.00428
+11,Métro,0.0044399999999999995
+12,Scooter ou moto légère thermique,0.0763
+13,Moto thermique,0.1913
+14,RER ou Transilien,0.00978
+15,TER,0.02769
+16,Bus électrique,0.0217
+17,Trottinette à assistance électrique,0.0249
+18,Bus (GNV),0.1217
+19,Covoiturage thermique (1 passager),0.10880000000000001
+20,Covoiturage thermique (2 passagers),0.07253333333333334
+21,Covoiturage thermique (3 passagers),0.054400000000000004
+22,Covoiturage thermique (4 passagers),0.04352
+23,Covoiturage électrique (1 passager),0.051699999999999996
+24,Covoiturage électrique (2 passagers),0.034466666666666666
+25,Covoiturage électrique (3 passagers),0.025849999999999998
+26,Covoiturage électrique (4 passagers),0.020679999999999997
+27,Marche,0.0
