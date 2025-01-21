@@ -53,6 +53,7 @@ CREATE_TABLES_SQL = [
         DateDebut DATE NOT NULL,
         DateFin DATE NOT NULL,
         CO2Total FLOAT NOT NULL,
+        GlobalRank INT NOT NULL,
         CONSTRAINT fk_profil_beges FOREIGN KEY (ProfilId) REFERENCES Profil(ProfilId) ON DELETE CASCADE
     );
     """,

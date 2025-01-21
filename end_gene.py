@@ -40,17 +40,26 @@ def populate_database():
         cursor = connection.cursor()
 
         # Fetch external data
+        print("Fetching external data...")
         cursor.execute("SELECT RoleId FROM Role")
         role_ids = [row[0] for row in cursor.fetchall()]
+        if not role_ids:
+            raise ValueError("No roles found in the database.")
 
         cursor.execute("SELECT AlimentId, Nom FROM Aliment")
         aliments = cursor.fetchall()  # [(id, name), ...]
+        if not aliments:
+            raise ValueError("No aliments found in the database.")
 
         cursor.execute("SELECT TransportId FROM Transport")
         transport_ids = [row[0] for row in cursor.fetchall()]
+        if not transport_ids:
+            raise ValueError("No transports found in the database.")
 
         cursor.execute("SELECT ChauffageId FROM Chauffage")
         chauffage_ids = [row[0] for row in cursor.fetchall()]
+        if not chauffage_ids:
+            raise ValueError("No heating types found in the database.")
 
         # Insert profiles
         print("Inserting profiles...")
@@ -82,8 +91,8 @@ def populate_database():
             end_date = start_date + datetime.timedelta(days=30)
             cursor.execute(
                 """
-                INSERT INTO BEGES (BEGESId, ProfilId, DateDebut, DateFin, CO2Total)
-                VALUES (%s, %s, %s, %s, %s)
+                INSERT INTO BEGES (BEGESId, ProfilId, DateDebut, DateFin, CO2Total, GlobalRank)
+                VALUES (%s, %s, %s, %s, %s, %s)
                 """,
                 (
                     beges_id,
@@ -91,6 +100,7 @@ def populate_database():
                     start_date,
                     end_date,
                     random.uniform(100, 1000),  # Random total CO2
+                    0  # Placeholder for GlobalRank
                 )
             )
 
@@ -118,7 +128,7 @@ def populate_database():
                          "summer" if single_date.month in [6, 7, 8] else \
                          "autumn" if single_date.month in [9, 10, 11] else "spring"
                 for aliment_id, aliment_name in random.sample(aliments, random.randint(1, 3)):
-                    if aliment_name in SEASONAL_ALIMENTS.get(season, aliments):
+                    if aliment_name in SEASONAL_ALIMENTS.get(season, [a[1] for a in aliments]):
                         cursor.execute(
                             """
                             INSERT INTO AlimentationEmission (AlimentId, BEGESId, CO2EmisAlimentation, DateDebut, DateFin, Rank)
@@ -151,33 +161,26 @@ def populate_database():
                     )
                 )
 
-        # Insert challenges (Defi) and progress
-        print("Inserting challenges and progress...")
-        for defi_id in range(1, 51):  # Generate 50 challenges
+            # Calculate GlobalRank for BEGES
             cursor.execute(
                 """
-                INSERT INTO Defi (DefiId, Nom, Description, Objectif)
-                VALUES (%s, %s, %s, %s)
+                SELECT AVG(Rank) FROM (
+                    SELECT Rank FROM AlimentationEmission WHERE BEGESId = %s
+                    UNION ALL
+                    SELECT Rank FROM TransportEmission WHERE BEGESId = %s
+                    UNION ALL
+                    SELECT Rank FROM ChauffageEmission WHERE BEGESId = %s
+                ) ranks
                 """,
-                (
-                    defi_id,
-                    f"Defi_{defi_id}",
-                    "Challenge description",
-                    random.randint(10, 100),  # Random objective
-                )
+                (beges_id, beges_id, beges_id)
             )
-            for profile_id in range(1, 101):  # Assign progress to all profiles
-                cursor.execute(
-                    """
-                    INSERT INTO ProgressionDefi (ProfilId, DefiId, Score)
-                    VALUES (%s, %s, %s)
-                    """,
-                    (
-                        profile_id,
-                        defi_id,
-                        random.randint(0, 100),  # Random score
-                    )
-                )
+            global_rank = cursor.fetchone()[0] or 0  # Default to 0 if no ranks are present
+
+            # Update GlobalRank in BEGES
+            cursor.execute(
+                "UPDATE BEGES SET GlobalRank = %s WHERE BEGESId = %s",
+                (global_rank, beges_id)
+            )
 
         # Commit all changes
         connection.commit()
